@@ -207,6 +207,10 @@ message ApplicationPreservedFields {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:resource:path=applicationsets,shortName=appset;appsets
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Healthy",type="string",JSONPath=".status.healthySummary",priority=1,description="Healthy apps out of total"
+// +kubebuilder:printcolumn:name="Synced",type="string",JSONPath=".status.syncedSummary",priority=1,description="Synced apps out of total"
+// +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.conditions[?(@.type==\"ResourcesUpToDate\")].reason",description="Overall condition reason"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 message ApplicationSet {
   optional .k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -379,6 +383,12 @@ message ApplicationSetStatus {
 
   // ResourcesCount is the total number of resources managed by this application set. The count may be higher than actual number of items in the Resources field when
   // the number of managed resources exceeds the limit imposed by the controller (to avoid making the status field too large).
+  // HealthySummary shows the ratio of healthy apps to total apps, e.g. "2/5"
+  optional string healthySummary = 6;
+
+  // SyncedSummary shows the ratio of synced apps to total apps, e.g. "3/5"
+  optional string syncedSummary = 7;
+
   optional int64 resourcesCount = 4;
 
   // Health contains information about the applicationset's current health status based on the applicationset conditions

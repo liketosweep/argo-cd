@@ -580,7 +580,37 @@ func (r *ApplicationSetReconciler) setApplicationSetStatusCondition(ctx context.
 		updatedAppset.Status.SetConditions(newConditions, evaluatedTypes)
 
 		// Update the newly fetched object with new set of conditions
-		err := r.Client.Status().Update(ctx, updatedAppset)
+		// --- Compute healthy and synced summaries ---
+		var appList argov1alpha1.ApplicationList
+		if err := r.Client.List(ctx, &appList, client.InNamespace(applicationSet.Namespace)); err == nil {
+			var totalCount, healthyCount, syncedCount int
+			for i := range appList.Items {
+				app := &appList.Items[i]
+				// Only count apps that belong to this ApplicationSet
+				ownerRefs := app.GetOwnerReferences()
+				owned := false
+				for _, ref := range ownerRefs {
+					if ref.Kind == "ApplicationSet" && ref.Name == applicationSet.Name {
+						owned = true
+						break
+					}
+				}
+				if !owned {
+					continue
+				}
+				totalCount++
+				if app.Status.Health.Status == health.HealthStatusHealthy {
+					healthyCount++
+				}
+				if app.Status.Sync.Status == argov1alpha1.SyncStatusCodeSynced {
+					syncedCount++
+				}
+			}
+			updatedAppset.Status.HealthySummary = fmt.Sprintf("%d/%d", healthyCount, totalCount)
+			updatedAppset.Status.SyncedSummary = fmt.Sprintf("%d/%d", syncedCount, totalCount)
+		}
+		// --- End summary computation ---
+                err := r.Client.Status().Update(ctx, updatedAppset)
 		if err != nil {
 			return err
 		}

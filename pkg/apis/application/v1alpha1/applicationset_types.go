@@ -51,6 +51,10 @@ type ConfigMapKeyRef struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:resource:path=applicationsets,shortName=appset;appsets
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Healthy",type="string",JSONPath=".status.healthySummary",priority=1,description="Healthy apps out of total"
+// +kubebuilder:printcolumn:name="Synced",type="string",JSONPath=".status.syncedSummary",priority=1,description="Synced apps out of total"
+// +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.conditions[?(@.type==\"ResourcesUpToDate\")].reason",description="Overall condition reason"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 type ApplicationSet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata" protobuf:"bytes,1,opt,name=metadata"` // Common: shared with Application
@@ -813,7 +817,11 @@ type ApplicationSetStatus struct {
 	Resources []ResourceStatus `json:"resources,omitempty" protobuf:"bytes,3,opt,name=resources"`
 	// ResourcesCount is the total number of resources managed by this application set. The count may be higher than actual number of items in the Resources field when
 	// the number of managed resources exceeds the limit imposed by the controller (to avoid making the status field too large).
-	ResourcesCount int64 `json:"resourcesCount,omitempty" protobuf:"varint,4,opt,name=resourcesCount"`
+	// HealthySummary shows the ratio of healthy apps to total apps, e.g. "2/5"
+	HealthySummary string `json:"healthySummary,omitempty" protobuf:"bytes,6,opt,name=healthySummary"`
+	// SyncedSummary shows the ratio of synced apps to total apps, e.g. "3/5"
+	SyncedSummary  string `json:"syncedSummary,omitempty" protobuf:"bytes,7,opt,name=syncedSummary"`
+	ResourcesCount int64  `json:"resourcesCount,omitempty" protobuf:"varint,4,opt,name=resourcesCount"`
 	// Health contains information about the applicationset's current health status based on the applicationset conditions
 	Health HealthStatus `json:"health,omitempty" protobuf:"bytes,5,opt,name=health"`
 }
