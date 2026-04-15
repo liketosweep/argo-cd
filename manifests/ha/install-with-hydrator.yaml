@@ -7022,7 +7022,22 @@ spec:
     singular: applicationset
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .status.healthySummary
+      name: Healthy
+      priority: 1
+      type: string
+    - jsonPath: .status.syncedSummary
+      name: Synced
+      priority: 1
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="ResourcesUpToDate")].reason
+      name: State
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         properties:
@@ -30130,6 +30145,8 @@ spec:
                   status:
                     type: string
                 type: object
+              healthySummary:
+                type: string
               resources:
                 items:
                   properties:
@@ -30169,6 +30186,8 @@ spec:
               resourcesCount:
                 format: int64
                 type: integer
+              syncedSummary:
+                type: string
             type: object
         required:
         - metadata

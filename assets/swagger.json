@@ -7199,7 +7199,7 @@
     },
     "v1alpha1ApplicationSet": {
       "type": "object",
-      "title": "ApplicationSet is a set of Application resources.\n+genclient\n+genclient:noStatus\n+k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object\n+kubebuilder:resource:path=applicationsets,shortName=appset;appsets\n+kubebuilder:subresource:status",
+      "title": "ApplicationSet is a set of Application resources.\n+genclient\n+genclient:noStatus\n+k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object\n+kubebuilder:resource:path=applicationsets,shortName=appset;appsets\n+kubebuilder:subresource:status\n+kubebuilder:printcolumn:name=\"Healthy\",type=\"string\",JSONPath=\".status.healthySummary\",priority=1,description=\"Healthy apps out of total\"\n+kubebuilder:printcolumn:name=\"Synced\",type=\"string\",JSONPath=\".status.syncedSummary\",priority=1,description=\"Synced apps out of total\"\n+kubebuilder:printcolumn:name=\"State\",type=\"string\",JSONPath=\".status.conditions[?(@.type==\\\"ResourcesUpToDate\\\")].reason\",description=\"Overall condition reason\"\n+kubebuilder:printcolumn:name=\"Age\",type=\"date\",JSONPath=\".metadata.creationTimestamp\"",
       "properties": {
         "metadata": {
           "$ref": "#/definitions/v1ObjectMeta"
@@ -7471,6 +7471,10 @@
         "health": {
           "$ref": "#/definitions/v1alpha1HealthStatus"
         },
+        "healthySummary": {
+          "type": "string",
+          "title": "ResourcesCount is the total number of resources managed by this application set. The count may be higher than actual number of items in the Resources field when\nthe number of managed resources exceeds the limit imposed by the controller (to avoid making the status field too large).\nHealthySummary shows the ratio of healthy apps to total apps, e.g. \"2/5\""
+        },
         "resources": {
           "description": "Resources is a list of Applications resources managed by this application set.",
           "type": "array",
@@ -7479,9 +7483,12 @@
           }
         },
         "resourcesCount": {
-          "description": "ResourcesCount is the total number of resources managed by this application set. The count may be higher than actual number of items in the Resources field when\nthe number of managed resources exceeds the limit imposed by the controller (to avoid making the status field too large).",
           "type": "integer",
           "format": "int64"
+        },
+        "syncedSummary": {
+          "type": "string",
+          "title": "SyncedSummary shows the ratio of synced apps to total apps, e.g. \"3/5\""
         }
       }
     },

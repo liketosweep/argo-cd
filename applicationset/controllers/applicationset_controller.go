@@ -580,7 +580,13 @@ func (r *ApplicationSetReconciler) setApplicationSetStatusCondition(ctx context.
 		updatedAppset.Status.SetConditions(newConditions, evaluatedTypes)
 
 		// Update the newly fetched object with new set of conditions
-		err := r.Client.Status().Update(ctx, updatedAppset)
+
+		// --- Compute healthy and synced summaries ---
+		healthy, synced := computeAppSummaries(updatedAppset)
+		updatedAppset.Status.HealthySummary = healthy
+		updatedAppset.Status.SyncedSummary = synced
+
+		err := r.Status().Update(ctx, updatedAppset)
 		if err != nil {
 			return err
 		}
@@ -1925,3 +1931,21 @@ func shouldRequeueForApplicationSet(appSetOld, appSetNew *argov1alpha1.Applicati
 }
 
 var _ handler.EventHandler = &clusterSecretEventHandler{}
+
+func computeAppSummaries(appset *argov1alpha1.ApplicationSet) (string, string) {
+	var totalCount, healthyCount, syncedCount int
+
+	for _, res := range appset.Status.Resources {
+		totalCount++
+		if res.Health != nil && string(res.Health.Status) == "Healthy" {
+			healthyCount++
+		}
+		if string(res.Status) == "Synced" {
+			syncedCount++
+		}
+	}
+
+	healthy := fmt.Sprintf("%d/%d", healthyCount, totalCount)
+	synced := fmt.Sprintf("%d/%d", syncedCount, totalCount)
+	return healthy, synced
+}

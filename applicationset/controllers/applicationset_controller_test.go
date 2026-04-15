@@ -8485,3 +8485,36 @@ func startAndSyncInformer(t *testing.T, informer cache.SharedIndexInformer) cont
 	}
 	return cancel
 }
+
+func TestComputeAppSummaries(t *testing.T) {
+	// 1. Setup a fake ApplicationSet with 3 child resources
+	appset := &v1alpha1.ApplicationSet{
+		Status: v1alpha1.ApplicationSetStatus{
+			Resources: []v1alpha1.ResourceStatus{
+				{
+					Health: &v1alpha1.HealthStatus{Status: "Healthy"},
+					Status: "Synced",
+				},
+				{
+					Health: &v1alpha1.HealthStatus{Status: "Degraded"},
+					Status: "OutOfSync",
+				},
+				{
+					Health: &v1alpha1.HealthStatus{Status: "Healthy"},
+					Status: "OutOfSync",
+				},
+			},
+		},
+	}
+
+	// 2. Run our new helper function
+	healthy, synced := computeAppSummaries(appset)
+
+	// 3. Verify the math (We expect 2/3 Healthy, and 1/3 Synced)
+	if healthy != "2/3" {
+		t.Errorf("expected 2/3 healthy, got %s", healthy)
+	}
+	if synced != "1/3" {
+		t.Errorf("expected 1/3 synced, got %s", synced)
+	}
+}
