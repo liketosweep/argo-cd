@@ -1933,19 +1933,22 @@ func shouldRequeueForApplicationSet(appSetOld, appSetNew *argov1alpha1.Applicati
 var _ handler.EventHandler = &clusterSecretEventHandler{}
 
 func computeAppSummaries(appset *argov1alpha1.ApplicationSet) (string, string) {
-	var totalCount, healthyCount, syncedCount int
+    totalCount := int(appset.Status.ResourcesCount) // true count, never truncated
+    var healthyCount, syncedCount int
 
-	for _, res := range appset.Status.Resources {
-		totalCount++
-		if res.Health != nil && string(res.Health.Status) == "Healthy" {
-			healthyCount++
-		}
-		if string(res.Status) == "Synced" {
-			syncedCount++
-		}
-	}
+    for _, res := range appset.Status.Resources {
+        if res.Health != nil && res.Health.Status == health.HealthStatusHealthy {
+            healthyCount++
+        }
+        if res.Status == argov1alpha1.SyncStatusCodeSynced {
+            syncedCount++
+        }
+    }
 
-	healthy := fmt.Sprintf("%d/%d", healthyCount, totalCount)
-	synced := fmt.Sprintf("%d/%d", syncedCount, totalCount)
-	return healthy, synced
+    if totalCount == 0 {
+        return "", ""
+    }
+
+    return fmt.Sprintf("%d/%d", healthyCount, totalCount),
+           fmt.Sprintf("%d/%d", syncedCount, totalCount)
 }
