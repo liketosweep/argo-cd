@@ -630,6 +630,63 @@ func (_c *Dependencies_RequestAppRefresh_Call) RunAndReturn(run func(appName str
 
 // RollbackApp provides a mock function for the type Dependencies
 func (_mock *Dependencies) RollbackApp(ctx context.Context, app *v1alpha1.Application, hydratedRevision string) error {
-    args := _mock.Called(ctx, app, hydratedRevision)
-    return args.Error(0)
+	ret := _mock.Called(ctx, app, hydratedRevision)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RollbackApp")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *v1alpha1.Application, string) error); ok {
+		r0 = returnFunc(ctx, app, hydratedRevision)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// Dependencies_RollbackApp_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RollbackApp'
+type Dependencies_RollbackApp_Call struct {
+	*mock.Call
+}
+
+// RollbackApp is a helper method to define mock.On call
+//   - ctx context.Context
+//   - app *v1alpha1.Application
+//   - hydratedRevision string
+func (_e *Dependencies_Expecter) RollbackApp(ctx interface{}, app interface{}, hydratedRevision interface{}) *Dependencies_RollbackApp_Call {
+	return &Dependencies_RollbackApp_Call{Call: _e.mock.On("RollbackApp", ctx, app, hydratedRevision)}
+}
+
+func (_c *Dependencies_RollbackApp_Call) Run(run func(ctx context.Context, app *v1alpha1.Application, hydratedRevision string)) *Dependencies_RollbackApp_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *v1alpha1.Application
+		if args[1] != nil {
+			arg1 = args[1].(*v1alpha1.Application)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *Dependencies_RollbackApp_Call) Return(err error) *Dependencies_RollbackApp_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *Dependencies_RollbackApp_Call) RunAndReturn(run func(ctx context.Context, app *v1alpha1.Application, hydratedRevision string) error) *Dependencies_RollbackApp_Call {
+	_c.Call.Return(run)
+	return _c
 }

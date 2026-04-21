@@ -75,9 +75,6 @@ type Dependencies interface {
 
 	// GetCommitAuthorEmail gets the configured commit author email from argocd-cm ConfigMap.
 	GetCommitAuthorEmail() (string, error)
-
-	// RollbackApp performs a rollback for a Source Hydrator enabled application by committing historical manifests to the sync branch.
-	RollbackApp(ctx context.Context, app *appv1.Application, hydratedRevision string) error
 }
 
 // Hydrator is the main struct that implements the hydration logic. It uses the Dependencies interface to access the
@@ -586,7 +583,10 @@ func IsRootPath(path string) bool {
 }
 
 func (h *Hydrator) RollbackApp(ctx context.Context, app *appv1.Application, hydratedRevision string) error {
-	proj, err := h.dependencies.GetProcessableAppProj(app)
+	if hydratedRevision == "" {
+		return fmt.Errorf("hydrated revision is empty")
+	}
+        proj, err := h.dependencies.GetProcessableAppProj(app)
 	if err != nil {
 		return fmt.Errorf("failed to get project for %s: %w", app.QualifiedName(), err)
 	}
